@@ -20,11 +20,11 @@ DEFAULT_LIBRARY_PATH=$HOME/.steam/steam
 SHADER_SHORTIX=$SHORTIX_DIR/_Shaders
 WORKSHOP_SHORTIX=$SHORTIX_DIR/_Workshop
 
-# TODO move those two into the cache folder
 FIRSTRUN=$CACHE_PATH/first_run
 LASTRUN=$CACHE_PATH/last_run
 
-if [ -d "./scripts" ]; then
+# Search for a valid script folder
+if [ -d "./scripts" ] && [ -f "./shortix.sh" ]; then
     SCRIPT_PATH="./scripts"
 elif [ -d "/usr/share/shortix/scripts" ]; then
     SCRIPT_PATH="/usr/share/shortix/scripts"
@@ -35,16 +35,18 @@ else
     exit -1
 fi
 
+# clears temp folder
 if [ -d "$TEMP_PATH" ]; then
     rm -r $TEMP_PATH
 fi
-
 mkdir -p $TEMP_PATH
 
+# pfx_id: Id of the steam game
+# returns the library path of the steam game on stdout
 get_library_path() {
     local pfx_id=$1
-    local id_found=false
 
+    local id_found=false
     if [ -f "$HOME/.steam/steam/config/libraryfolders.vdf" ]; then
         if [ ! -f $LIBRARY_PATH_INFO_OUTPUT ]; then
             $PYTHON_COMMAND $SCRIPT_PATH/print_library_path_info.py > $LIBRARY_PATH_INFO_OUTPUT
@@ -62,23 +64,29 @@ get_library_path() {
     fi
 }
 
+# game_id: Id of the steam game
+# returns the compatdata path of the steam game on stdout
 get_compatdata_path(){
     local game_id=$1
     echo "$(get_library_path $game_id)/steamapps/compatdata"
 }
 
+# game_id: Id of the steam game
+# returns the shadercache path of the steam game on stdout
 get_shadercache_path(){
     local game_id=$1
     echo "$(get_library_path $game_id)/steamapps/shadercache"
 }
 
+# game_id: Id of the steam game
+# returns the workshop content path of the steam game on stdout
 get_workshop_path(){
     local game_id=$1
     echo "$(get_library_path $game_id)/steamapps/workshop/content"
 }
 
+# Checks if python 3 is installed and saves the correct binary in PYTHON_COMMAND
 python_check(){
-    # Check if python is present and and ask the user to eventually download python vdf
     if [ "$(command -v python)" ]; then
         if [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 2 ]] && [ "$(command -v python3)" ]; then
             PYTHON_COMMAND=python3
@@ -143,7 +151,7 @@ shortix_script () {
     #Create symlinks based on the data from the temp file.
     #IFS defines the semicolon as column separator
     #Then read the both columns as variables and create symlinks based on the data of each line
-    #Also create the _Shader directory and create symlinks to the shadercache directories.
+    #Also create the _Shader and _Workshop directories and create symlinks to the shadercache and workshop content directories.
     #Some games don't use shadercache, if so, the dead end symlink will be removed directly
     #If size file is found add the size to the file name
     mkdir -p $SHADER_SHORTIX

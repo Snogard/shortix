@@ -23,6 +23,9 @@ else
 	USEKDIALOG=false
 fi
 
+# removes the destination folder and then copies the source folder into the destination
+# from: path to the source folder
+# to: path to the destination folder
 replace_folder(){
 	local from=$1
 	local to=$2
@@ -34,6 +37,9 @@ replace_folder(){
 	cp -r "$from" "$to"
 }
 
+# Displays a message to the user. Uses kdialog if present otherwise it prints to stdout
+# title: title of the window 
+# message: message to be displayed
 display_message(){
 	title=$1
 	message=$2
@@ -62,21 +68,26 @@ else
 
 fi
 
-if [ "$(command -v python)" ]; then
-    if [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 2 ]] && [ "$(command -v python3)" ]; then
+# Checks if python 3 is installed and saves the correct binary in PYTHON_COMMAND
+python_check(){
+    if [ "$(command -v python)" ]; then
+        if [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 2 ]] && [ "$(command -v python3)" ]; then
+            PYTHON_COMMAND=python3
+        elif [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 3 ]]; then
+            PYTHON_COMMAND=python
+        else
+            echo "Python 3 could not be found! Please install it. Aborting..."
+            exit
+        fi
+    elif [ "$(command -v python3)" ]; then
         PYTHON_COMMAND=python3
-    elif [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 3 ]]; then
-        PYTHON_COMMAND=python
     else
-		display_message "Shortix Dependency Checker" "Python 3 could not be found! Please install it. Aborting..."
+        echo "Python 3 could not be found! Please install it. Aborting..."
         exit
     fi
-elif [ "$(command -v python3)" ]; then
-    PYTHON_COMMAND=python3
-else
-	display_message "Shortix Dependency Checker" "Python 3 could not be found! Please install it. Aborting..."
-	exit -1
-fi
+}
+
+python_check
 
 # Loading python virtual environment if present
 if [ -f "$CONFIG_PATH/venv/bin/activate" ]; then
