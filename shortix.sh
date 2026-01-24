@@ -108,15 +108,15 @@ shortix_script () {
     fi
 
     # Loading python virtual environment if present
-    if [ -f "$CACHE_PATH/venv/bin/activate" ]; then
-        source $CACHE_PATH/venv/bin/activate
+    if [ -f "$CONFIG_PATH/venv/bin/activate" ]; then
+        source $CONFIG_PATH/venv/bin/activate
     fi
 
     # Check if python-vdf is installed
     if ! $($PYTHON_COMMAND -c "import vdf" &> /dev/null) ; then
         echo "Python vdf is not installed, please use your package manager or do it manually:"
-        echo "$PYTHON_COMMAND -m venv $CACHE_PATH/venv"
-        echo "source $CACHE_PATH/venv/bin/activate"
+        echo "$PYTHON_COMMAND -m venv $CONFIG_PATH/venv"
+        echo "source $CONFIG_PATH/venv/bin/activate"
         echo "pip install \"git+https://github.com/solsticegamestudios/vdf\""
         exit
     fi

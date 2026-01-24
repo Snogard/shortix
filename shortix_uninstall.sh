@@ -1,6 +1,7 @@
 #!/bin/sh
 CACHE_PATH=$HOME/.cache/Shortix
 DATA_PATH=$HOME./local/share/Shortix
+CONFIG_PATH=$HOME/.config/Shortix
 
 echo "This will uninstall Shortix from your system!"
 read -p "Press ENTER if you want to continue, otherwise close this window"
@@ -28,5 +29,8 @@ if [ -d $DATA_PATH ]; then
   rm -r $DATA_PATH
 fi
 
+if [ -d "$CONFIG_PATH/venv" ]; then
+  rm -r "$CONFIG_PATH/venv"
+fi
 echo "Everything is done! Shortix is uninstalled, including backup and service (if it was installed).\nThanks and Bye!"
 exit

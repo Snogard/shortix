@@ -9,7 +9,6 @@ PROTONTRICKS_NATIVE="protontricks"
 PROTONTRICKS_FLAT="flatpak run com.github.Matoking.protontricks"
 PROTONTRICKS_FLATID="com.github.Matoking.protontricks"
 
-CACHE_PATH=$HOME/.cache/Shortix
 CONFIG_PATH=$HOME/.config/Shortix
 DATA_PATH=$HOME/.local/share/Shortix
 
@@ -80,8 +79,8 @@ else
 fi
 
 # Loading python virtual environment if present
-if [ -f "$CACHE_PATH/venv/bin/activate" ]; then
-    source $CACHE_PATH/venv/bin/activate
+if [ -f "$CONFIG_PATH/venv/bin/activate" ]; then
+    source $CONFIG_PATH/venv/bin/activate
 fi
 
 # Check if python-vdf is installed system wide otherwise ask the user to create a virtual environment
@@ -112,13 +111,13 @@ NOTE: type 'y' if you are on SteamOS or other immutable distros."
 		display_message "Shortix Dependency Checker" "Use your package manager to install python vdf and relaunch shortix"
 		exit 0
     elif [[ $venv_choice = 'y' ]]; then
-        if [ -d "$CACHE_PATH/venv" ]; then
-            rm -r "$CACHE_PATH/venv"
+        if [ -d "$CONFIG_PATH/venv" ]; then
+            rm -r "$CONFIG_PATH/venv"
         fi
         echo "Installing python vdf inside a virtual environment"
-        mkdir -p $CACHE_PATH
-        $PYTHON_COMMAND -m venv $CACHE_PATH/venv
-        source $CACHE_PATH/venv/bin/activate
+        mkdir -p $CONFIG_PATH
+        $PYTHON_COMMAND -m venv $CONFIG_PATH/venv
+        source $CONFIG_PATH/venv/bin/activate
         pip install "git+https://github.com/solsticegamestudios/vdf"
     fi
 fi
@@ -157,77 +156,77 @@ chmod +x $HOME/Shortix/shortix_uninstall.sh
 if [ $USEKDIALOG == true ]; then
 	kdialog --title "Shortix $TYPE" --yesno "Would you like to add the prefix id to the shortcut name?\nLike this:\nGame Name (123455678)" 2> /dev/null
 	case $? in
-	0)  if [ ! -f $HOME/Shortix/.id ]; then
-	      touch $HOME/Shortix/.id
+	0)  if [ ! -f $CONFIG_PATH/id ]; then
+	      touch $CONFIG_PATH/id
 	    fi
 	    ;;
-	1)  if [ -f $HOME/Shortix/.id ]; then
-	      rm -rf $HOME/Shortix/.id
+	1)  if [ -f $CONFIG_PATH/id ]; then
+	      rm -rf $CONFIG_PATH/id
 	    fi
 	    ;;
 	esac
 else
 	read -p "Would you like to add the prefix id to the shortcut name? ike this: Game Name (123455678) " yn
 	case $yn in
-	yY)  if [ ! -f $HOME/Shortix/.id ]; then
-	      touch $HOME/Shortix/.id
+	yY)  if [ ! -f $CONFIG_PATH/id ]; then
+	      touch $CONFIG_PATH/id
 	    fi
 	    ;;
-	nN)  if [ -f $HOME/Shortix/.id ]; then
-	      rm -rf $HOME/Shortix/.id
+	nN)  if [ -f $CONFIG_PATH/id ]; then
+	      rm -rf $CONFIG_PATH/id
 	    fi
 	    ;;
 	esac
 fi
 
 if [ $USEKDIALOG == true ]; then
-	if [ -f $HOME/Shortix/.id ]; then
+	if [ -f $CONFIG_PATH/id ]; then
 	  kdialog --title "Shortix $TYPE" --yesno "Would you also like to add the size of the target directory to the shortcut name?\nLike this: \nGame Name (123455678) - 1.6G" 2> /dev/null
 	  case $? in
-	  0)  if [ ! -f $HOME/Shortix/.size ]; then
-		touch $HOME/Shortix/.size
+	  0)  if [ ! -f $CONFIG_PATH/size ]; then
+		touch $CONFIG_PATH/size
 	      fi
 	      ;;
-	  1)  if [ -f $HOME/Shortix/.size ]; then
-		rm -rf $HOME/Shortix/.size
+	  1)  if [ -f $CONFIG_PATH/size ]; then
+		rm -rf $CONFIG_PATH/size
 	      fi
 	      ;;
 	  esac
 	else
 	  kdialog --title "Shortix $TYPE" --yesno "Would you like to add the size of the target directory to the shortcut name?\nLike this:\nGame Name - 1.6G?"
 	  case $? in
-	  0)  if [ ! -f $HOME/Shortix/.size ]; then
-		touch $HOME/Shortix/.size
+	  0)  if [ ! -f $CONFIG_PATH/size ]; then
+		touch $CONFIG_PATH/size
 	      fi
 	      ;;
-	  1)  if [ -f $HOME/Shortix/.size ]; then
-		rm -rf $HOME/Shortix/.size
+	  1)  if [ -f $CONFIG_PATH/size ]; then
+		rm -rf $CONFIG_PATH/size
 	      fi
 	      ;;
 	  esac
 	fi
 else
-	if [ -f $HOME/Shortix/.id ]; then
+	if [ -f $CONFIG_PATH/id ]; then
 	  read -p "Would you also like to add the size of the target directory to the shortcut name? Like this: Game Name (123455678) - 1.6G " yn 
 	  case $yn in
-	  yY)  if [ ! -f $HOME/Shortix/.size ]; then
-		touch $HOME/Shortix/.size
+	  yY)  if [ ! -f $CONFIG_PATH/size ]; then
+		touch $CONFIG_PATH/size
 	      fi
 	      ;;
-	  nN)  if [ -f $HOME/Shortix/.size ]; then
-		rm -rf $HOME/Shortix/.size
+	  nN)  if [ -f $CONFIG_PATH/size ]; then
+		rm -rf $CONFIG_PATH/size
 	      fi
 	      ;;
 	  esac
 	else
 	  read -p "Would you like to add the size of the target directory to the shortcut name?\nLike this:\nGame Name - 1.6G? " yn
 	  case $yn in
-	  yY)  if [ ! -f $HOME/Shortix/.size ]; then
-		touch $HOME/Shortix/.size
+	  yY)  if [ ! -f $CONFIG_PATH/size ]; then
+		touch $CONFIG_PATH/size
 	      fi
 	      ;;
-	  nN)  if [ -f $HOME/Shortix/.size ]; then
-		rm -rf $HOME/Shortix/.size
+	  nN)  if [ -f $CONFIG_PATH/size ]; then
+		rm -rf $CONFIG_PATH/size
 	      fi
 	      ;;
 	  esac
@@ -283,36 +282,36 @@ fi
 if [ $USEKDIALOG == true ]; then
 	kdialog --title "Shortix Backup" --yesno "Would you like to create a backup of Shortix on a different location?\nIf yes, please select the location where the Shortix-Backup directory should be created."
 	case $? in
-	  0)  if [ ! -f $HOME/Shortix/.backup ]; then
-		touch $HOME/Shortix/.backup
+	  0)  if [ ! -f $CONFIG_PATH/backup ]; then
+		touch $CONFIG_PATH/backup
 	      fi
 	      ;;
-	  1)  if [ -f $HOME/Shortix/.backup ]; then
-		rm -rf $HOME/Shortix/.backup
+	  1)  if [ -f $CONFIG_PATH/backup ]; then
+		rm -rf $CONFIG_PATH/backup
 	      fi
 	      ;;
 	esac
 else
 	read -p "Would you like to create a backup of Shortix on a different location?" yn
 	case $yn in
-	  yY)  if [ ! -f $HOME/Shortix/.backup ]; then
-		touch $HOME/Shortix/.backup
+	  yY)  if [ ! -f $CONFIG_PATH/backup ]; then
+		touch $CONFIG_PATH/backup
 	      fi
 	      ;;
-	  nN)  if [ -f $HOME/Shortix/.backup ]; then
-		rm -rf $HOME/Shortix/.backup
+	  nN)  if [ -f $CONFIG_PATH/backup ]; then
+		rm -rf $CONFIG_PATH/backup
 	      fi
 	      ;;
 	esac
 fi
 
 if [ $USEKDIALOG == true ]; then
-	if [ -f $HOME/Shortix/.backup ]; then
-	  kdialog --getexistingdirectory . > $HOME/Shortix/.backup
-	  mkdir -p $(cat $HOME/Shortix/.backup)/Shortix-Backup
+	if [ -f $CONFIG_PATH/backup ]; then
+	  kdialog --getexistingdirectory . > $CONFIG_PATH/backup
+	  mkdir -p $(cat $CONFIG_PATH/backup)/Shortix-Backup
 	fi
 else
-	if [ -f $HOME/Shortix/.backup ]; then
+	if [ -f $CONFIG_PATH/backup ]; then
  	read -p "Please enter your path where the Shortix-Backup directory should be created (like '/home/deck'): " backdir
   	mkdir -p $backdir/Shortix-Backup
    	fi
