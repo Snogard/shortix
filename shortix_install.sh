@@ -9,11 +9,42 @@ PROTONTRICKS_NATIVE="protontricks"
 PROTONTRICKS_FLAT="flatpak run com.github.Matoking.protontricks"
 PROTONTRICKS_FLATID="com.github.Matoking.protontricks"
 
+CACHE_PATH=$HOME/.cache/Shortix
+CONFIG_PATH=$HOME/.config/Shortix
+DATA_PATH=$HOME/.local/share/Shortix
+
+PYTHON_COMMAND=python
+
+echo "Creating Folder at $DATA_PATH"
+mkdir -p "$DATA_PATH"
+
 if [ "$(command -v kdialog)" ]; then
 	USEKDIALOG=true
 else
 	USEKDIALOG=false
 fi
+
+replace_folder(){
+	local from=$1
+	local to=$2
+
+	if [ -d "$to" ]; then
+		rm -r "$to"
+	fi
+
+	cp -r "$from" "$to"
+}
+
+display_message(){
+	title=$1
+	message=$2
+
+	if [ $USEKDIALOG == true ]; then
+  		kdialog --title "$title" --msgbox "$message"
+  	else
+		echo "$message"
+  	fi
+}
 
 #Check if and how protontricks is installed, if yes run, if no, stop the script
 if [ "$(command -v $PROTONTRICKS_NATIVE)" ]; then
@@ -31,6 +62,68 @@ else
 	fi
 
 fi
+
+if [ "$(command -v python)" ]; then
+    if [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 2 ]] && [ "$(command -v python3)" ]; then
+        PYTHON_COMMAND=python3
+    elif [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 3 ]]; then
+        PYTHON_COMMAND=python
+    else
+		display_message "Shortix Dependency Checker" "Python 3 could not be found! Please install it. Aborting..."
+        exit
+    fi
+elif [ "$(command -v python3)" ]; then
+    PYTHON_COMMAND=python3
+else
+	display_message "Shortix Dependency Checker" "Python 3 could not be found! Please install it. Aborting..."
+	exit -1
+fi
+
+# Loading python virtual environment if present
+if [ -f "$CACHE_PATH/venv/bin/activate" ]; then
+    source $CACHE_PATH/venv/bin/activate
+fi
+
+# Check if python-vdf is installed system wide otherwise ask the user to create a virtual environment
+if ! $($PYTHON_COMMAND -c "import vdf" &> /dev/null) ; then
+
+	if [ $USEKDIALOG == true ]; then
+		kdialog --title "Shortix Dependency Checker" --yesno "Would you like to install python vdf system wide yourself or would you like shortix to make a vritual environment?\nNOTE: click 'yes' if you are on SteamOS or other immutable distros." 2> /dev/null
+		case $? in
+		0)  venv_choice='y'
+			;;
+		1)  venv_choice='n'
+			;;
+		2)	venv_choice='n'
+			;;
+		esac
+	else
+	    echo "Would you like to install python vdf system wide yourself or would you like shortix to make a vritual environment?
+NOTE: type 'y' if you are on SteamOS or other immutable distros."
+		while [[ ! $venv_choice = 'y' ]] && [[ ! $venv_choice = 'n' ]]; do
+			read  -n 1 -p "(y/n):" venv_choice
+			if [[ ! $venv_choice = 'y' ]] && [[ ! $venv_choice = 'n' ]]; then
+				echo " is not a valid choice."
+			fi
+		done
+	fi
+
+    if [[ $venv_choice = 'n' ]]; then
+		display_message "Shortix Dependency Checker" "Use your package manager to install python vdf and relaunch shortix"
+		exit 0
+    elif [[ $venv_choice = 'y' ]]; then
+        if [ -d "$CACHE_PATH/venv" ]; then
+            rm -r "$CACHE_PATH/venv"
+        fi
+        echo "Installing python vdf inside a virtual environment"
+        mkdir -p $CACHE_PATH
+        $PYTHON_COMMAND -m venv $CACHE_PATH/venv
+        source $CACHE_PATH/venv/bin/activate
+        pip install "git+https://github.com/solsticegamestudios/vdf"
+    fi
+fi
+
+
 
 if [ -d $HOME/Shortix/ ] || [ -f $HOME/.config/systemd/user/shortix.service ]; then
   TYPE="updater"
@@ -54,7 +147,8 @@ fi
 mkdir -p $HOME/Shortix
 cp /tmp/shortix/shortix.sh $HOME/Shortix
 cp /tmp/shortix/remove_prefix.sh $HOME/Shortix
-p /tmp/shortix/shortix_uninstall.sh $HOME/Shortix
+replace_folder "/tmp/shortix/scripts" "$DATA_PATH/scripts"
+cp /tmp/shortix/shortix_uninstall.sh $HOME/Shortix
 chmod +x $HOME/Shortix/shortix.sh
 chmod +x $HOME/Shortix/remove_prefix.sh
 chmod +x $HOME/Shortix/shortix_uninstall.sh

@@ -1,4 +1,7 @@
 #!/bin/sh
+CACHE_PATH=$HOME/.cache/Shortix
+DATA_PATH=$HOME./local/share/Shortix
+
 echo "This will uninstall Shortix from your system!"
 read -p "Press ENTER if you want to continue, otherwise close this window"
 
@@ -15,6 +18,14 @@ else
     rm -rf $HOME/.config/systemd/user/shortix.service
   fi
   rm -rf $HOME/Shortix
+fi
+
+if [ -d $CACHE_PATH ]; then
+  rm -r $CACHE_PATH
+fi
+
+if [ -d $DATA_PATH ]; then
+  rm -r $DATA_PATH
 fi
 
 echo "Everything is done! Shortix is uninstalled, including backup and service (if it was installed).\nThanks and Bye!"

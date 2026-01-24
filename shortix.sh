@@ -1,16 +1,99 @@
 #!/bin/sh
-#Set variables for all needed files an paths
+
+# Set variables for all needed files an paths
 PROTONTRICKS_NATIVE="protontricks"
 PROTONTRICKS_FLAT="flatpak run com.github.Matoking.protontricks"
 PROTONTRICKS_FLATID="com.github.Matoking.protontricks"
+LINK_COMMAND="ln -sTf"
+PYTHON_COMMAND=python
+
+CACHE_PATH=$HOME/.cache/Shortix
+CONFIG_PATH=$HOME/.config/Shortix
+DATA_PATH=$HOME/.local/share/Shortix
+
+TEMP_PATH=/tmp/shortix-$(id -u)
+PROTONTRICKS_OUTPUT="$TEMP_PATH/protontricks_output.txt"
+LIBRARY_PATH_INFO_OUTPUT="$TEMP_PATH/library_path_info_output.txt"
+
 SHORTIX_DIR=$HOME/Shortix
-TEMPFILE=/tmp/shortix_temp
-COMPDATA=$HOME/.steam/steam/steamapps/compatdata
-SHADER_DIR=$HOME/.steam/steam/steamapps/shadercache
+DEFAULT_LIBRARY_PATH=$HOME/.steam/steam
 SHADER_SHORTIX=$SHORTIX_DIR/_Shaders
+
+# TODO move those two into the cache folder
 FIRSTRUN=$HOME/Shortix/.shortix
 LASTRUN=$HOME/Shortix/.shortix_last_run
-LINK_COMMAND="ln -sTf"
+
+if [ -d "./scripts" ]; then
+    SCRIPT_PATH="./scripts"
+elif [ -d "/usr/share/shortix/scripts" ]; then
+    SCRIPT_PATH="/usr/share/shortix/scripts"
+elif [ -d "$DATA_PATH/scripts" ]; then
+    SCRIPT_PATH="$DATA_PATH/scripts"
+else
+    echo "No script path found, make sure Shortix was installed successfully"
+    exit -1
+fi
+
+if [ -d "$TEMP_PATH" ]; then
+    rm -r $TEMP_PATH
+fi
+
+mkdir -p $TEMP_PATH
+
+get_library_path() {
+    local pfx_id=$1
+    local id_found=false
+
+    if [ -f "$HOME/.steam/steam/config/libraryfolders.vdf" ]; then
+        if [ ! -f $LIBRARY_PATH_INFO_OUTPUT ]; then
+            $PYTHON_COMMAND $SCRIPT_PATH/print_library_path_info.py > $LIBRARY_PATH_INFO_OUTPUT
+        fi
+
+        while IFS=';' read  game_id library_path; do
+            if [ "$pfx_id" = "$game_id" ]; then
+                id_found=true
+                echo "$library_path"
+            fi
+        done < $LIBRARY_PATH_INFO_OUTPUT
+    fi
+    if ! $id_found; then
+        echo "$DEFAULT_LIBRARY_PATH"
+    fi
+}
+
+get_compatdata_path(){
+    local game_id=$1
+    echo "$(get_library_path $game_id)/steamapps/compatdata"
+}
+
+get_shader_path(){
+    local game_id=$1
+    echo "$(get_library_path $game_id)/steamapps/shadercache"
+}
+
+get_workshop_path(){
+    local game_id=$1
+    echo "$(get_library_path $game_id)/steamapps/workshop/content"
+}
+
+python_check(){
+    # Check if python is present and and ask the user to eventually download python vdf
+    if [ "$(command -v python)" ]; then
+        if [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 2 ]] && [ "$(command -v python3)" ]; then
+            PYTHON_COMMAND=python3
+        elif [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 3 ]]; then
+            PYTHON_COMMAND=python
+        else
+            echo "Python 3 could not be found! Please install it. Aborting..."
+            exit
+        fi
+    elif [ "$(command -v python3)" ]; then
+        PYTHON_COMMAND=python3
+    else
+        echo "Python 3 could not be found! Please install it. Aborting..."
+        exit
+    fi
+}
 
 shortix_script () {
     #Check if and how protontricks is installed, if yes run in, if no, stop the script
@@ -22,19 +105,35 @@ shortix_script () {
         echo "Protontricks could not be found! Please install it. Aborting..."
         exit
     fi
-    eval "$PROTONTRICKS" -l > $TEMPFILE 2> /dev/null
+
+    # Loading python virtual environment if present
+    if [ -f "$CACHE_PATH/venv/bin/activate" ]; then
+        source $CACHE_PATH/venv/bin/activate
+    fi
+
+    # Check if python-vdf is installed
+    if ! $($PYTHON_COMMAND -c "import vdf" &> /dev/null) ; then
+        echo "Python vdf is not installed, please use your package manager or do it manually:"
+        echo "$PYTHON_COMMAND -m venv $CACHE_PATH/venv"
+        echo "source $CACHE_PATH/venv/bin/activate"
+        echo "pip install \"git+https://github.com/solsticegamestudios/vdf\""
+        exit
+    fi
+
+
+    eval "$PROTONTRICKS" -l > $PROTONTRICKS_OUTPUT 2> /dev/null
 
     #remove all lines which doesn't have a round bracket in it
-    sed -i -ne '/)/p' $TEMPFILE
+    sed -i -ne '/)/p' $PROTONTRICKS_OUTPUT
 
     #Remove the "Non_Steam shortcut: " string from temp file
-    sed -i 's/Non-Steam shortcut: //' $TEMPFILE
+    sed -i 's/Non-Steam shortcut: //' $PROTONTRICKS_OUTPUT
 
     #Remove semicolons from game names because we use semicolons as separator later on
-    sed -i -E 's/\;/ /g' $TEMPFILE
+    sed -i -E 's/\;/ /g' $PROTONTRICKS_OUTPUT
 
     #Replace the last occurence of closing and opening round brackets and replace them with semicolons and remove trailing space in one go
-    sed -i -E 's/ \(([^)]+)\)$/;\1;/' $TEMPFILE
+    sed -i -E 's/ \(([^)]+)\)$/;\1;/' $PROTONTRICKS_OUTPUT
 
     #Remove non existant symlinks
     find -L $SHORTIX_DIR -maxdepth 1 -type l -delete
@@ -53,56 +152,56 @@ shortix_script () {
             do
                 target="$SHORTIX_DIR/$game_name ($prefix_id)"
                 if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
-                    $LINK_COMMAND "$COMPDATA/$prefix_id" "$target"
-                    SIZE=$(du -shH "$COMPDATA/$prefix_id" | cut -f1)
+                    $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$target"
+                    SIZE=$(du -shH "$(get_compatdata_path $prefix_id)/$prefix_id" | cut -f1)
                     mv "$target" "$target - $SIZE"
                 fi
 
                 target="$SHADER_SHORTIX/$game_name ($prefix_id)"
                 if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
-                    if [ -d $SHADER_DIR/$prefix_id ]; then
-                        $LINK_COMMAND "$SHADER_DIR/$prefix_id" "$target"
+                    if [ -d $(get_shader_path $prefix_id)/$prefix_id ]; then
+                        $LINK_COMMAND "$(get_shader_path $prefix_id)/$prefix_id" "$target"
                         SIZE=$(du -shH "$target" | cut -f1)
                         mv "$target" "$target - $SIZE"
                     fi
                 fi
 
-            done < $TEMPFILE
+            done < $PROTONTRICKS_OUTPUT
         else
             while IFS=';' read game_name prefix_id
             do
-                $LINK_COMMAND "$COMPDATA/$prefix_id" "$SHORTIX_DIR/$game_name ($prefix_id)"
-                $LINK_COMMAND "$SHADER_DIR/$prefix_id" "$SHADER_SHORTIX/$game_name ($prefix_id)"
+                $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$SHORTIX_DIR/$game_name ($prefix_id)"
+                $LINK_COMMAND "$(get_shader_path $prefix_id)/$prefix_id" "$SHADER_SHORTIX/$game_name ($prefix_id)"
                 find -L $SHADER_SHORTIX -maxdepth 1 -type l -delete
-            done < $TEMPFILE
+            done < $PROTONTRICKS_OUTPUT
         fi
     elif [ -f $SHORTIX_DIR/.size ]; then
         while IFS=';' read game_name prefix_id
         do
             target="$SHORTIX_DIR/$game_name"
             if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
-                $LINK_COMMAND "$COMPDATA/$prefix_id" "$target"
-                SIZE=$(du -shH "$COMPDATA/$prefix_id" | cut -f1)
+                $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$target"
+                SIZE=$(du -shH "$(get_compatdata_path $prefix_id)/$prefix_id" | cut -f1)
                 mv "$target" "$target - $SIZE"
             fi
 
             target="$SHADER_SHORTIX/$game_name"
             if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
-                if [ -d $SHADER_DIR/$prefix_id ]; then
-                    $LINK_COMMAND "$SHADER_DIR/$prefix_id" "$target"
+                if [ -d $(get_shader_path $prefix_id)/$prefix_id ]; then
+                    $LINK_COMMAND "$(get_shader_path $prefix_id)/$prefix_id" "$target"
                     SIZE=$(du -shH "$target" | cut -f1)
                     mv "$target" "$target - $SIZE"
                 fi
             fi
-        done < $TEMPFILE
+        done < $PROTONTRICKS_OUTPUT
 
     else
         while IFS=';' read game_name prefix_id
         do
-            $LINK_COMMAND "$COMPDATA/$prefix_id" "$SHORTIX_DIR/$game_name"
-            $LINK_COMMAND "$SHADER_DIR/$prefix_id" "$SHADER_SHORTIX/$game_name"
+            $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$SHORTIX_DIR/$game_name"
+            $LINK_COMMAND "$(get_shader_path $prefix_id)/$prefix_id" "$SHADER_SHORTIX/$game_name"
             find -L $SHADER_SHORTIX -maxdepth 1 -type l -delete
-        done < $TEMPFILE
+        done < $PROTONTRICKS_OUTPUT
 
     fi
 
@@ -121,11 +220,14 @@ shortix_script () {
 
 }
 
-if [ ! -d $COMPDATA ]; then
-    echo "Steam compatibility data directory (${COMPDATA}) could not be found! Aborting..."
+python_check
+
+if [ ! -d "$(get_compatdata_path)" ]; then
+    echo "Steam compatibility data directory ($(get_compatdata_path)) could not be found! Aborting..."
     exit
 fi
 
+# TODO make a last run for each folder found
 if [ ! -f $FIRSTRUN ]; then
     shortix_script
     touch "$FIRSTRUN"
@@ -135,7 +237,7 @@ else
     if [ -f $LASTRUN ]; then
         dorun=0
         lastrun_timestamp=$(date +%s -r "$LASTRUN")
-        if [ "$(find $COMPDATA -newermt "@${lastrun_timestamp}" -type d)" ]; then
+        if [ "$(find $(get_compatdata_path) -newermt "@${lastrun_timestamp}" -type d)" ]; then
             dorun=1
         fi
     fi
