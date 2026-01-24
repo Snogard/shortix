@@ -18,6 +18,7 @@ LIBRARY_PATH_INFO_OUTPUT="$TEMP_PATH/library_path_info_output.txt"
 SHORTIX_DIR=$HOME/Shortix
 DEFAULT_LIBRARY_PATH=$HOME/.steam/steam
 SHADER_SHORTIX=$SHORTIX_DIR/_Shaders
+WORKSHOP_SHORTIX=$SHORTIX_DIR/_Workshop
 
 # TODO move those two into the cache folder
 FIRSTRUN=$HOME/Shortix/.shortix
@@ -146,13 +147,14 @@ shortix_script () {
     #Some games don't use shadercache, if so, the dead end symlink will be removed directly
     #If .size file is found add the size to the file name
     mkdir -p $SHADER_SHORTIX
+    mkdir -p $WORKSHOP_SHORTIX
 
     append_id=$([ ! -f $SHORTIX_DIR/.id ] && echo false)
     append_size=$([ ! -f $SHORTIX_DIR/.size ] && echo false)
 
-    if [ ! -z $SHADER_SHORTIX ]; then
-        find -L $SHADER_SHORTIX -maxdepth 1 -type l -delete
-    fi
+    find -L $SHADER_SHORTIX -maxdepth 1 -type l -delete
+    find -L $WORKSHOP_SHORTIX -maxdepth 1 -type l -delete
+
 
     while IFS=';' read game_name prefix_id; do
         # Compatdata target
@@ -167,7 +169,7 @@ shortix_script () {
             fi
             $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$target"
         fi
-        
+
         # Shadercache
         target="$SHADER_SHORTIX/$game_name"
         if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
@@ -180,6 +182,21 @@ shortix_script () {
                     target="$target - $SIZE"
                 fi
                 $LINK_COMMAND "$(get_shadercache_path $prefix_id)/$prefix_id" "$target"
+            fi
+        fi
+
+        # Workshop
+        target="$WORKSHOP_SHORTIX/$game_name"
+        if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
+            if [ -d $(get_workshop_path $prefix_id)/$prefix_id ]; then
+                if $append_id; then
+                    target="$target ($prefix_id)"
+                fi
+                if $append_size; then
+                    SIZE=$(du -shH "$(get_workshop_path $prefix_id)/$prefix_id" | cut -f1)
+                    target="$target - $SIZE"
+                fi
+                $LINK_COMMAND "$(get_workshop_path $prefix_id)/$prefix_id" "$target"
             fi
         fi
     done < $PROTONTRICKS_OUTPUT
