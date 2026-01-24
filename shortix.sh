@@ -66,7 +66,7 @@ get_compatdata_path(){
     echo "$(get_library_path $game_id)/steamapps/compatdata"
 }
 
-get_shader_path(){
+get_shadercache_path(){
     local game_id=$1
     echo "$(get_library_path $game_id)/steamapps/shadercache"
 }
@@ -146,64 +146,43 @@ shortix_script () {
     #Some games don't use shadercache, if so, the dead end symlink will be removed directly
     #If .size file is found add the size to the file name
     mkdir -p $SHADER_SHORTIX
-    if [ -f $SHORTIX_DIR/.id ]; then
-        if [ -f $SHORTIX_DIR/.size ]; then
-            while IFS=';' read game_name prefix_id
-            do
-                target="$SHORTIX_DIR/$game_name ($prefix_id)"
-                if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
-                    $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$target"
-                    SIZE=$(du -shH "$(get_compatdata_path $prefix_id)/$prefix_id" | cut -f1)
-                    mv "$target" "$target - $SIZE"
-                fi
 
-                target="$SHADER_SHORTIX/$game_name ($prefix_id)"
-                if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
-                    if [ -d $(get_shader_path $prefix_id)/$prefix_id ]; then
-                        $LINK_COMMAND "$(get_shader_path $prefix_id)/$prefix_id" "$target"
-                        SIZE=$(du -shH "$target" | cut -f1)
-                        mv "$target" "$target - $SIZE"
-                    fi
-                fi
+    append_id=$([ ! -f $SHORTIX_DIR/.id ] && echo false)
+    append_size=$([ ! -f $SHORTIX_DIR/.size ] && echo false)
 
-            done < $PROTONTRICKS_OUTPUT
-        else
-            while IFS=';' read game_name prefix_id
-            do
-                $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$SHORTIX_DIR/$game_name ($prefix_id)"
-                $LINK_COMMAND "$(get_shader_path $prefix_id)/$prefix_id" "$SHADER_SHORTIX/$game_name ($prefix_id)"
-                find -L $SHADER_SHORTIX -maxdepth 1 -type l -delete
-            done < $PROTONTRICKS_OUTPUT
-        fi
-    elif [ -f $SHORTIX_DIR/.size ]; then
-        while IFS=';' read game_name prefix_id
-        do
-            target="$SHORTIX_DIR/$game_name"
-            if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
-                $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$target"
-                SIZE=$(du -shH "$(get_compatdata_path $prefix_id)/$prefix_id" | cut -f1)
-                mv "$target" "$target - $SIZE"
-            fi
-
-            target="$SHADER_SHORTIX/$game_name"
-            if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
-                if [ -d $(get_shader_path $prefix_id)/$prefix_id ]; then
-                    $LINK_COMMAND "$(get_shader_path $prefix_id)/$prefix_id" "$target"
-                    SIZE=$(du -shH "$target" | cut -f1)
-                    mv "$target" "$target - $SIZE"
-                fi
-            fi
-        done < $PROTONTRICKS_OUTPUT
-
-    else
-        while IFS=';' read game_name prefix_id
-        do
-            $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$SHORTIX_DIR/$game_name"
-            $LINK_COMMAND "$(get_shader_path $prefix_id)/$prefix_id" "$SHADER_SHORTIX/$game_name"
-            find -L $SHADER_SHORTIX -maxdepth 1 -type l -delete
-        done < $PROTONTRICKS_OUTPUT
-
+    if [ ! -z $SHADER_SHORTIX ]; then
+        find -L $SHADER_SHORTIX -maxdepth 1 -type l -delete
     fi
+
+    while IFS=';' read game_name prefix_id; do
+        # Compatdata target
+        target="$SHORTIX_DIR/$game_name"
+        if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
+            if $append_id; then
+                target="$target ($prefix_id)"
+            fi
+            if $append_size; then
+                SIZE=$(du -shH "$(get_compatdata_path $prefix_id)/$prefix_id" | cut -f1)
+                target="$target - $SIZE"
+            fi
+            $LINK_COMMAND "$(get_compatdata_path $prefix_id)/$prefix_id" "$target"
+        fi
+        
+        # Shadercache
+        target="$SHADER_SHORTIX/$game_name"
+        if [[ ! $target =~ \ -\ [0-9.]+[A-Z] ]]; then
+            if [ -d $(get_shadercache_path $prefix_id)/$prefix_id ]; then
+                if $append_id; then
+                    target="$target ($prefix_id)"
+                fi
+                if $append_size; then
+                    SIZE=$(du -shH "$(get_shadercache_path $prefix_id)/$prefix_id" | cut -f1)
+                    target="$target - $SIZE"
+                fi
+                $LINK_COMMAND "$(get_shadercache_path $prefix_id)/$prefix_id" "$target"
+            fi
+        fi
+    done < $PROTONTRICKS_OUTPUT
 
     if [ -f $SHORTIX_DIR/.backup ]; then
             BACKUP_DIR=$(cat $SHORTIX_DIR/.backup)/Shortix-Backup
@@ -216,8 +195,6 @@ shortix_script () {
     fi
 
     touch "$LASTRUN"
-
-
 }
 
 python_check
