@@ -21,8 +21,8 @@ SHADER_SHORTIX=$SHORTIX_DIR/_Shaders
 WORKSHOP_SHORTIX=$SHORTIX_DIR/_Workshop
 
 # TODO move those two into the cache folder
-FIRSTRUN=$HOME/Shortix/.shortix
-LASTRUN=$HOME/Shortix/.shortix_last_run
+FIRSTRUN=$CACHE_PATH/first_run
+LASTRUN=$CACHE_PATH/last_run
 
 if [ -d "./scripts" ]; then
     SCRIPT_PATH="./scripts"
