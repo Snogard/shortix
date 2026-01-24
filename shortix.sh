@@ -139,18 +139,18 @@ shortix_script () {
     #Remove non existant symlinks
     find -L $SHORTIX_DIR -maxdepth 1 -type l -delete
 
-    # Check if the .id file is present. If true, then append the prefix id to the game name.
+    # Check if the id file is present. If true, then append the prefix id to the game name.
     #Create symlinks based on the data from the temp file.
     #IFS defines the semicolon as column separator
     #Then read the both columns as variables and create symlinks based on the data of each line
     #Also create the _Shader directory and create symlinks to the shadercache directories.
     #Some games don't use shadercache, if so, the dead end symlink will be removed directly
-    #If .size file is found add the size to the file name
+    #If size file is found add the size to the file name
     mkdir -p $SHADER_SHORTIX
     mkdir -p $WORKSHOP_SHORTIX
 
-    append_id=$([ ! -f $SHORTIX_DIR/.id ] && echo false)
-    append_size=$([ ! -f $SHORTIX_DIR/.size ] && echo false)
+    append_id=$([ ! -f $CONFIG_PATH/id ] && echo false)
+    append_size=$([ ! -f $CONFIG_PATH/size ] && echo false)
 
     find -L $SHADER_SHORTIX -maxdepth 1 -type l -delete
     find -L $WORKSHOP_SHORTIX -maxdepth 1 -type l -delete
@@ -201,8 +201,8 @@ shortix_script () {
         fi
     done < $PROTONTRICKS_OUTPUT
 
-    if [ -f $SHORTIX_DIR/.backup ]; then
-            BACKUP_DIR=$(cat $SHORTIX_DIR/.backup)/Shortix-Backup
+    if [ -f $CONFIG_PATH/backup ]; then
+            BACKUP_DIR=$(cat $CONFIG_PATH/backup)/Shortix-Backup
             if [ -d "$BACKUP_DIR" ]; then
                 rm -rf $BACKUP_DIR
             fi

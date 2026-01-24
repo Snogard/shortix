@@ -10,8 +10,8 @@ if [ ! -d $HOME/Shortix ]; then
   echo "Shortix is not installed in $HOME/Shortix!"
   echo "Please remove your Shortix directory manually if there's one"
 else
-  if [ -f $HOME/Shortix/.backup ]; then
-    rm -rf $(cat $HOME/Shortix/.backup)/Shortix-Backup
+  if [ -f $CONFIG_PATH/backup ]; then
+    rm -rf $(cat $CONFIG_PATH/backup)/Shortix-Backup
   fi
   if [ -f $HOME/.config/systemd/user/shortix.service ]; then
     systemctl --user stop shortix.service
