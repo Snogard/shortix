@@ -40,6 +40,7 @@ if [ -d "$TEMP_PATH" ]; then
     rm -r $TEMP_PATH
 fi
 mkdir -p $TEMP_PATH
+mkdir -p $CACHE_PATH
 
 # pfx_id: Id of the steam game
 # returns the library path of the steam game on stdout
