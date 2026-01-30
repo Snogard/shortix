@@ -11,14 +11,14 @@ if [ ! -d $HOME/Shortix ]; then
   echo "Please remove your Shortix directory manually if there's one"
 else
   if [ -f $CONFIG_PATH/backup ]; then
-    rm -rf $(cat $CONFIG_PATH/backup)/Shortix-Backup
+    rm -r $(cat $CONFIG_PATH/backup)/Shortix-Backup
   fi
   if [ -f $HOME/.config/systemd/user/shortix.service ]; then
     systemctl --user stop shortix.service
     systemctl --user disable shortix.service
-    rm -rf $HOME/.config/systemd/user/shortix.service
+    rm $HOME/.config/systemd/user/shortix.service
   fi
-  rm -rf $HOME/Shortix
+  rm -r $HOME/Shortix
 fi
 
 if [ -d $CACHE_PATH ]; then
