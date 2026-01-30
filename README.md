@@ -6,7 +6,17 @@ Fixed nested symlink by using `ln -sTf` instead of just `ln -sf`. This was menti
 To update just run the desktop shortcut or redownload it from the releases (nothing got changed to the shortcut itself).
   
 # Prerequireties
+### Steam OS
 You need to install Protontricks from Discover on your Steam Deck, that's it.
+
+### Others 
+Requried:
+- Protontricks (either systen wide or flatpak)
+- python 3
+
+Optional:
+- pip 3
+- [python vdf](https://github.com/solsticegamestudios/vdf)
 
 # Installation (Automatic)
 Download the [installer](https://github.com/Jannomag/shortix/releases/latest/download/shortix_installer.desktop) to the Desktop and double click it.    
@@ -21,43 +31,51 @@ If you changed your mind about the service, just run the "Update Shortix" again.
 
 Afterwards there's a new directory in you home directory, called Shortix.    
 In there you'll find all created symlinks / shortcuts to the installed games - which were found by Protontricks.  
-You'll also find a subdirectory called "\_Shaders". In there you'll find shortcuts to all available shadercache directories.
+You'll also find two subdirectories called "\_Shaders" and "\_Workshop". In there you'll find shortcuts to all available shadercache directories and workshop content respectively.
 
 In the Shortix directory you'll also find the `shortix.sh` and `remove_prefix.sh` scripts.    
 With `shortix.sh` you can run Shortix manually (run this in a Terminal or use right click and choose "Run in Konsole" if you're running KDE).    
 For `remove_prefix.sh` read the tutorial below.
-(Please note: in the directory you will find several hidden files, currently possible are: `.shortix`, `.shortix_last_run`, `.id`, `.size`.
-Those files are needed by the script as settings files, don't delete them!).
 
-If you want to rerun the script manually, just delete all symlinks and the hidden files `.shortix` and `.shortix_last_run`. Both files are settings file for letting the script know if it already ran at least once. Then just run the shortix.sh in a terminal.   
-If you don't want ids or sizes to be added anymore, delete `.id` or/and `.size` and do the rerun thing from the line above.    
+Shortix configuration is located inside `$HOME/.config/Shortix`. There you can find empty files named `id`, `size` and/or `backup` and a folder for your python virtual environment. If you don't want ids or sizes to be appended to the game name anymore, delete `id` or/and `size` and if you don't want backups anymore, you can delete `backup`. Vice versa you can add create those file yourself if you did't have them before hand. Keep in mind that you'll have to run the script manually at least once to apply the changes you've made (read below).
 
-# Manual installation
+If you want to rerun the script manually, just delete all symlinks and the cache files `first_run` and `last_run` in `$HOME/.cache/Shortix`. Both files are cache files for letting the script know if it already ran at least once. Then just run the shortix.sh in a terminal.
+
+# Manual installation (Steam OS)
 1. Go to the /tmp folder using `cd /tmp`
 2. Clone this repo with `git clone https://github.com/Jannomag/shortix`
-3. Create Shortix directory with `mkdir -p /home/deck/Shortix`
-4. Copy the script with `cp /tmp/shortix/shortix.sh /home/deck/Shortix`
-5. Copy the systemd service with `cp /tmp/shortix/shortix.service /home/deck/.config/systemd/user`
-6. Reload systemd daemon with `systemctl --user daemon-reload`
-7. Enable service with `systemctl --user enable shortix.service`
-8. Start service with `systemctl --user start shortix.service`
-9. Done (all those steps does the `shortix_installer.sh` for you
+3. Create Shortix directory with `mkdir -p $HOME/Shortix $HOME/.config/Shortix $HOME/.local/share/Shortix`
+4. Copy the script with `cp /tmp/shortix/shortix.sh $HOME/Shortix`
+5. Copy the scripts folder with `cp -r /tmp/shortix/scripts $HOME/.local/share/Shortix/`
+6. Configure a python virtual environment:
+    1. `python -m venv $HOME/.config/Shortix/venv`
+    2. `source $CONFIG_PATH/venv/bin/activate`
+    3. `python -m ensurepip --upgrade`
+    4. `pip install "git+https://github.com/solsticegamestudios/vdf"`
+7. (Optional) Create and empty `id` and/or `size` and/or `backup` file in $HOME/.config/Shortix to append the id and size to the game name and to enable the backup functionality
+8. Copy the systemd service with `cp /tmp/shortix/shortix.service $HOME/.config/systemd/user`
+9. Reload systemd daemon with `systemctl --user daemon-reload`
+10. Enable service with `systemctl --user enable shortix.service`
+11. Start service with `systemctl --user start shortix.service`
+12. Done (all those steps does the `shortix_installer.sh` for you
+
+NOTE for distro package creators: shortix accepts the scripts folder to be located in `/usr/share/shortix/scripts` wich takes priority from the user folder
 
 # Background and explanation
 I just wanted to have easier access to the prefixes for the games on my Steam Deck, so I created Shortix.
 What it does is really simple:
 - Run protontricks to get a list of all installed games, including Non-Steam games.
-- Use the data to create symlinks in `/home/deck/Shortix`
+- Use the data to create symlinks in `$HOME/Shortix`
 - If there's a dead end symlink, it will get removed
 - The script will be executed every 15 minutes by a systemd user service
 
 To change the restart interval you need to change two things:
-1. in `/home/deck/Shortix/shortix.sh` - change the value of the TIME variable in minutes
-2. in `/home/deck/.config/systemd/user/shortix.service` - change the 1800s value to your desired value in seconds
+1. in `$HOME/Shortix/shortix.sh` - change the value of the TIME variable in minutes
+2. in `$HOME/.config/systemd/user/shortix.service` - change the 1800s value to your desired value in seconds
 
 If you want you can also change the directory. For this modify the directory within the shortix.sh and also in the shortix.service file.
 
-You can also run the script manually either by using the terminal directly using this command: `/bin/bash /home/deck/Shortix/shortix.sh` or right click on the file and chosse "Run in Konsole".
+You can also run the script manually either by using the terminal directly using this command: `/bin/bash $HOME/Shortix/shortix.sh` or right click on the file and chosse "Run in Konsole".
 
 # Prefix removal script
 I've added a script called `remove_prefix.sh` to the Shortix directory.    
