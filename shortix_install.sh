@@ -13,6 +13,7 @@ CONFIG_PATH=$HOME/.config/Shortix
 DATA_PATH=$HOME/.local/share/Shortix
 
 PYTHON_COMMAND=python
+PIP_COMMAND=pip
 
 echo "Creating Folder at $DATA_PATH"
 mkdir -p "$DATA_PATH"
@@ -73,14 +74,17 @@ python_check(){
     if [ "$(command -v python)" ]; then
         if [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 2 ]] && [ "$(command -v python3)" ]; then
             PYTHON_COMMAND=python3
+			PIP_COMMAND=pip3
         elif [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 3 ]]; then
             PYTHON_COMMAND=python
+			PIP_COMMAND=pip
         else
             echo "Python 3 could not be found! Please install it. Aborting..."
             exit
         fi
     elif [ "$(command -v python3)" ]; then
         PYTHON_COMMAND=python3
+		PIP_COMMAND=pip3
     else
         echo "Python 3 could not be found! Please install it. Aborting..."
         exit
@@ -129,7 +133,11 @@ NOTE: type 'y' if you are on SteamOS or other immutable distros."
         mkdir -p $CONFIG_PATH
         $PYTHON_COMMAND -m venv $CONFIG_PATH/venv
         source $CONFIG_PATH/venv/bin/activate
-        pip install "git+https://github.com/solsticegamestudios/vdf"
+        # check if pip is not present
+        if [ ! $(command -v $PIP_COMMAND) ]; then
+            $PYTHON_COMMAND -m ensurepip --upgrade
+        fi
+        $PIP_COMMAND install "git+https://github.com/solsticegamestudios/vdf"
     fi
 fi
 

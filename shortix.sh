@@ -6,6 +6,7 @@ PROTONTRICKS_FLAT="flatpak run com.github.Matoking.protontricks"
 PROTONTRICKS_FLATID="com.github.Matoking.protontricks"
 LINK_COMMAND="ln -sTf"
 PYTHON_COMMAND=python
+PIP_COMMAND=pip
 
 CACHE_PATH=$HOME/.cache/Shortix
 CONFIG_PATH=$HOME/.config/Shortix
@@ -91,19 +92,23 @@ python_check(){
     if [ "$(command -v python)" ]; then
         if [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 2 ]] && [ "$(command -v python3)" ]; then
             PYTHON_COMMAND=python3
+			PIP_COMMAND=pip3
         elif [[ $(python -c 'import sys; print(sys.version_info[:][0])') -eq 3 ]]; then
             PYTHON_COMMAND=python
+			PIP_COMMAND=pip
         else
             echo "Python 3 could not be found! Please install it. Aborting..."
             exit
         fi
     elif [ "$(command -v python3)" ]; then
         PYTHON_COMMAND=python3
+		PIP_COMMAND=pip3
     else
         echo "Python 3 could not be found! Please install it. Aborting..."
         exit
     fi
 }
+
 
 shortix_script () {
     #Check if and how protontricks is installed, if yes run in, if no, stop the script
@@ -126,7 +131,11 @@ shortix_script () {
         echo "Python vdf is not installed, please use your package manager or do it manually:"
         echo "$PYTHON_COMMAND -m venv $CONFIG_PATH/venv"
         echo "source $CONFIG_PATH/venv/bin/activate"
-        echo "pip install \"git+https://github.com/solsticegamestudios/vdf\""
+        # check if pip is not present
+        if [ ! $(command -v $PIP_COMMAND) ]; then
+            echo "$PYTHON_COMMAND -m ensurepip --upgrade"
+        fi
+        echo "$PIP_COMMAND install \"git+https://github.com/solsticegamestudios/vdf\""
         exit
     fi
 
