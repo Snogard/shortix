@@ -5,8 +5,8 @@ StandardOutput=console
 [Service]
 Type=simple
 Restart=always
-RestartSec=1800s
-ExecStart=/bin/bash %h/Shortix/shortix.sh
+RestartSec=3600s
+ExecStart=/usr/bin/shortix
 
 [Install]
 WantedBy=default.target
