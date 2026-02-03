@@ -18,7 +18,15 @@ Optional:
 - pip 3
 - [python vdf](https://github.com/solsticegamestudios/vdf)
 
-# Installation (Automatic)
+# Installation 
+## Arch Linux and derivatives
+AUR package is available [here](https://aur.archlinux.org/shortix)  
+You can either use an AUR helper or make the package manually:
+1. `git clone https://aur.archlinux.org/shortix.git`
+2. `cd shortix`
+3. `makepkg -fsic`
+
+## Automatic (StamOS and others)
 Download the [installer](https://github.com/Jannomag/shortix/releases/latest/download/shortix_installer.desktop) to the Desktop and double click it.    
 ##### Attention for Firefox users: I noticed that Firefox will append ".download" to the file. I don't know why, but you need to remove this, so the file is called "shortex_installer.desktop" in order to be executable.    
 
@@ -37,11 +45,12 @@ In the Shortix directory you'll also find the `shortix.sh` and `remove_prefix.sh
 With `shortix.sh` you can run Shortix manually (run this in a Terminal or use right click and choose "Run in Konsole" if you're running KDE).    
 For `remove_prefix.sh` read the tutorial below.
 
+### Configurtion
 Shortix configuration is located inside `$HOME/.config/Shortix`. There you can find empty files named `id`, `size` and/or `backup` and a folder for your python virtual environment. If you don't want ids or sizes to be appended to the game name anymore, delete `id` or/and `size` and if you don't want backups anymore, you can delete `backup`. Vice versa you can add create those file yourself if you did't have them before hand. Keep in mind that you'll have to run the script manually at least once to apply the changes you've made (read below).
 
 If you want to rerun the script manually, just delete all symlinks and the cache files `first_run` and `last_run` in `$HOME/.cache/Shortix`. Both files are cache files for letting the script know if it already ran at least once. Then just run the shortix.sh in a terminal.
 
-# Manual installation (Steam OS)
+## Manual (Steam OS)
 1. Go to the /tmp folder using `cd /tmp`
 2. Clone this repo with `git clone https://github.com/Jannomag/shortix`
 3. Create Shortix directory with `mkdir -p $HOME/Shortix $HOME/.config/Shortix $HOME/.local/share/Shortix`
@@ -52,7 +61,7 @@ If you want to rerun the script manually, just delete all symlinks and the cache
     2. `source $CONFIG_PATH/venv/bin/activate`
     3. `python -m ensurepip --upgrade`
     4. `pip install "git+https://github.com/solsticegamestudios/vdf"`
-7. (Optional) Create and empty `id` and/or `size` and/or `backup` file in $HOME/.config/Shortix to append the id and size to the game name and to enable the backup functionality
+7. (Optional) Create and empty `id` and/or `size` and/or `backup` file in `$HOME/.config/Shortix` to append the id and size to the game name and to enable the backup functionality
 8. Copy the systemd service with `cp /tmp/shortix/shortix.service $HOME/.config/systemd/user`
 9. Reload systemd daemon with `systemctl --user daemon-reload`
 10. Enable service with `systemctl --user enable shortix.service`
