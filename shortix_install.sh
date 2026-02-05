@@ -182,7 +182,7 @@ if [ $USEKDIALOG == true ]; then
 	    fi
 	    ;;
 	1)  if [ -f $CONFIG_PATH/id ]; then
-	      rm -rf $CONFIG_PATH/id
+	      rm $CONFIG_PATH/id
 	    fi
 	    ;;
 	esac
@@ -194,7 +194,7 @@ else
 	    fi
 	    ;;
 	nN)  if [ -f $CONFIG_PATH/id ]; then
-	      rm -rf $CONFIG_PATH/id
+	      rm $CONFIG_PATH/id
 	    fi
 	    ;;
 	esac
@@ -209,7 +209,7 @@ if [ $USEKDIALOG == true ]; then
 	      fi
 	      ;;
 	  1)  if [ -f $CONFIG_PATH/size ]; then
-		rm -rf $CONFIG_PATH/size
+		rm $CONFIG_PATH/size
 	      fi
 	      ;;
 	  esac
@@ -221,7 +221,7 @@ if [ $USEKDIALOG == true ]; then
 	      fi
 	      ;;
 	  1)  if [ -f $CONFIG_PATH/size ]; then
-		rm -rf $CONFIG_PATH/size
+		rm $CONFIG_PATH/size
 	      fi
 	      ;;
 	  esac
@@ -235,7 +235,7 @@ else
 	      fi
 	      ;;
 	  nN)  if [ -f $CONFIG_PATH/size ]; then
-		rm -rf $CONFIG_PATH/size
+		rm $CONFIG_PATH/size
 	      fi
 	      ;;
 	  esac
@@ -247,7 +247,7 @@ else
 	      fi
 	      ;;
 	  nN)  if [ -f $CONFIG_PATH/size ]; then
-		rm -rf $CONFIG_PATH/size
+		rm $CONFIG_PATH/size
 	      fi
 	      ;;
 	  esac
@@ -308,7 +308,7 @@ if [ $USEKDIALOG == true ]; then
 	      fi
 	      ;;
 	  1)  if [ -f $CONFIG_PATH/backup ]; then
-		rm -rf $CONFIG_PATH/backup
+		rm $CONFIG_PATH/backup
 	      fi
 	      ;;
 	esac
@@ -320,7 +320,7 @@ else
 	      fi
 	      ;;
 	  nN)  if [ -f $CONFIG_PATH/backup ]; then
-		rm -rf $CONFIG_PATH/backup
+		rm $CONFIG_PATH/backup
 	      fi
 	      ;;
 	esac
@@ -344,7 +344,7 @@ if [ -f $HOME/.config/user-dirs.dirs ]; then
   if [ $XDG_DESKTOP_DIR/shortix_installer.desktop ]; then
     sed -i 's/Install/Update/' /tmp/shortix/shortix_installer.desktop
     mv /tmp/shortix/shortix_installer.desktop $XDG_DESKTOP_DIR/shortix_updater.desktop
-    rm -rf $XDG_DESKTOP_DIR/shortix_installer.desktop
+    rm $XDG_DESKTOP_DIR/shortix_installer.desktop
     chmod +x $XDG_DESKTOP_DIR/shortix_updater.desktop
   fi
 fi
