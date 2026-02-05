@@ -17,6 +17,8 @@ PIP_COMMAND=pip
 
 echo "Creating Folder at $DATA_PATH"
 mkdir -p "$DATA_PATH"
+echo "Creating Folder at $CONFIG_PATH"
+mkdir -p "$CONFIG_PATH"
 
 if [ "$(command -v kdialog)" ]; then
 	USEKDIALOG=true
