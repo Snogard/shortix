@@ -24,6 +24,21 @@ WORKSHOP_SHORTIX=$SHORTIX_DIR/_Workshop
 FIRSTRUN=$CACHE_PATH/first_run
 LASTRUN=$CACHE_PATH/last_run
 
+force_flag="false"
+print_usage() {
+    echo "shortix flags:"
+    echo "-f: forces shortix execution"
+}
+
+while getopts 'f' flag; do
+  case "${flag}" in
+    f) force_flag="true" ;;
+    *) print_usage
+       exit 1 ;;
+  esac
+done
+
+
 # Search for a valid script folder
 if [ -d "./scripts" ] && [ -f "./shortix.sh" ]; then
     SCRIPT_PATH="./scripts"
@@ -253,6 +268,11 @@ else
             dorun=1
         fi
     fi
+    
+    if [[ $force_flag == "true" ]]; then
+        dorun=1
+    fi
+
     if [ $dorun -eq 1 ]; then
         shortix_script
     fi
