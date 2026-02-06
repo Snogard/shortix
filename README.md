@@ -96,6 +96,10 @@ Afterwards press enter, the script will notify you about the paths.
 It will also ask you if you really want to delete them.    
 **Pleas note: The deletion will remove the prefix / shadercache completely! This will also remove savegames (except cloud saves) and other game specific user data - finally!**
 
+# Flags
+
+- -`f`: force Shortix execution
+
 # Uninstall
 To uninstall run the "Update Shortix" from the desktop and choose "no" when the script asks you if you want to install the service.
 Afterwards delete the Shortix directory in your home directory and the "Update Shortix" from desktop.
